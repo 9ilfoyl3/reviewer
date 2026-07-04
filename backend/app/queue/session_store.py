@@ -1,6 +1,6 @@
 """Analysis_Session 状态模型。
 
-定义一次仓库体检任务（Analysis_Session）的状态枚举与数据模型。
+定义一次仓库评估任务（Analysis_Session）的状态枚举与数据模型。
 状态机流转（详见 design.md「Analysis_Session 状态机」）：
 
     queued --> running --> completed
@@ -50,7 +50,7 @@ class SessionStatus(str, Enum):
 
     - QUEUED：API 已创建会话并入队，等待 Worker 消费。
     - RUNNING：Worker 已取到任务并开始执行抓取与流水线。
-    - COMPLETED：final_report 已推送，体检成功完成。
+    - COMPLETED：final_report 已推送，评估成功完成。
     - FAILED：抓取失败 / 流水线异常 / LLM 耗尽 / 孤儿超时回收。
     """
 
@@ -61,7 +61,7 @@ class SessionStatus(str, Enum):
 
 
 class AnalysisSession(BaseModel):
-    """一次仓库体检任务的会话状态。
+    """一次仓库评估任务的会话状态。
 
     会话状态存于 Redis Hash `reviewer:session:{session_id}`（存储逻辑见任务 5.2）。
     """

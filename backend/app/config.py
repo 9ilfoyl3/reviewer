@@ -10,7 +10,7 @@
 可选项：
   - GITHUB_TOKEN         ：GitHub 访问令牌，缺失时降级为匿名访问（需求 9.5）
   - REDIS_URL            ：Redis 连接地址（队列 + Pub/Sub + 会话状态）
-  - REVIEW_MAX_CONCURRENT：单 Worker 最大并发体检数（默认 4）
+  - REVIEW_MAX_CONCURRENT：单 Worker 最大并发评估数（默认 4）
   - AGENT_MAX_ITERATIONS ：单 Agent ReAct 最大轮数（默认 8，范围 1–20）
 """
 
@@ -44,14 +44,14 @@ class Settings(BaseSettings):
     # ---- Redis（队列 + Pub/Sub + 会话状态） ----
     redis_url: str = "redis://localhost:6379/0"
 
-    # ---- PostgreSQL（体检历史 + 模型配置持久化） ----
+    # ---- PostgreSQL（评估历史 + 模型配置持久化） ----
     # 使用 asyncpg 驱动；默认指向本地 reviewer 库。
     database_url: str = (
         "postgresql+asyncpg://postgres:postgres@localhost:5432/reviewer"
     )
 
     # ---- 并发与 Agent 控制 ----
-    review_max_concurrent: int = 4  # 单 Worker 最大并发体检数
+    review_max_concurrent: int = 4  # 单 Worker 最大并发评估数
     # ReAct 最大轮数；合法范围 1–20（需求 4.7），越界值会被钳制到边界而非导致启动失败
     agent_max_iterations: int = 8
 

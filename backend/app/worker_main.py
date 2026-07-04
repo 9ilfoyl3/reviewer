@@ -1,7 +1,7 @@
 """Worker 进程入口（任务 8.4）。
 
 本模块是 Reviewer 的 **Worker 进程入口**。依据设计文档「职责边界」，Worker 进程
-从 Redis Stream 消费体检任务，执行 GitHub 抓取 + 多 Agent 流水线，把 Progress_Event
+从 Redis Stream 消费评估任务，执行 GitHub 抓取 + 多 Agent 流水线，把 Progress_Event
 发布到 Redis Pub/Sub，并更新会话状态机。Worker **无状态、可水平扩展多副本**——同一
 Consumer Group 下启动多个进程，Redis 自动分配消息，无需改代码。
 
@@ -60,7 +60,7 @@ async def run_worker() -> None:
     """装配并运行 Worker 进程，直至收到停止信号后优雅退出（需求 5.7、7.7）。"""
     settings = get_settings()  # 触发 fail-fast 校验（缺必需 LLM 配置则抛错终止）
 
-    # 确保 PostgreSQL 表结构存在（体检历史 + 模型配置）。
+    # 确保 PostgreSQL 表结构存在（评估历史 + 模型配置）。
     await init_models()
 
     # 任务队列并确保消费组存在（幂等）。

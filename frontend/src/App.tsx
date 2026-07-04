@@ -1,10 +1,10 @@
 /**
  * 根组件：侧边栏布局 + 主区视图。
  *
- * 布局：左侧 Sidebar（挪用 artoo 样式，含「新的体检 / 模型管理」菜单按钮与体检历史），
+ * 布局：左侧 Sidebar（挪用 artoo 样式，含「新的评估 / 模型管理」菜单按钮与评估历史），
  * 右侧主区按视图切换：
- *   - 新的体检（activeRecordId 为 null）：NewReview 落地页，输入仓库地址发起体检。
- *   - 体检详情（activeRecordId 有值）：ReviewDetail，发起后直接进入并流式展示
+ *   - 新的评估（activeRecordId 为 null）：NewReview 落地页，输入仓库地址发起评估。
+ *   - 评估详情（activeRecordId 有值）：ReviewDetail，发起后直接进入并流式展示
  *     多 Agent 过程，完成后在同一页渲染报告；点击历史记录亦进入此页回看。
  *   - 模型管理：Models 页。
  *
@@ -27,7 +27,7 @@ export default function App() {
   const [view, setView] = useState<View>('review')
   const [groups, setGroups] = useState<HistoryGroup[]>([])
   const [loadingHistory, setLoadingHistory] = useState(true)
-  // 主区体检详情当前展示的记录 id（null 表示「新的体检」落地页）。
+  // 主区评估详情当前展示的记录 id（null 表示「新的评估」落地页）。
   const [activeRecordId, setActiveRecordId] = useState<string | null>(null)
   // 当前详情对应的仓库地址提示（详情尚未加载时用于头部展示）。
   const [activeRepoUrl, setActiveRepoUrl] = useState<string | undefined>()
@@ -48,14 +48,14 @@ export default function App() {
     void refreshHistory()
   }, [refreshHistory])
 
-  // 新的体检：回到落地页。
+  // 新的评估：回到落地页。
   const handleNewReview = useCallback(() => {
     setActiveRecordId(null)
     setActiveRepoUrl(undefined)
     setView('review')
   }, [])
 
-  // 会话创建成功：标记为 live，直接进入该会话的体检详情流式展示。
+  // 会话创建成功：标记为 live，直接进入该会话的评估详情流式展示。
   const handleSessionCreated = useCallback(
     (sessionId: string, repoUrl: string) => {
       liveIdsRef.current.add(sessionId)
@@ -67,7 +67,7 @@ export default function App() {
     [refreshHistory],
   )
 
-  // 点击历史记录：进入其体检详情（进行中则续流，已完成则回看报告）。
+  // 点击历史记录：进入其评估详情（进行中则续流，已完成则回看报告）。
   const handleSelectRecord = useCallback((id: string) => {
     setActiveRepoUrl(undefined)
     setActiveRecordId(id)
@@ -78,7 +78,7 @@ export default function App() {
     async (id: string) => {
       try {
         await deleteHistory(id)
-        toast.success('已删除体检记录')
+        toast.success('已删除评估记录')
         liveIdsRef.current.delete(id)
         if (activeRecordId === id) {
           setActiveRecordId(null)

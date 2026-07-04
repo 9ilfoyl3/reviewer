@@ -3,8 +3,8 @@
  *
  * 组成（对齐 artoo Layout 侧边栏）：
  * - 顶部：品牌标题「Reviewer」（衬线字体，占据整行）+ 收起/展开切换。
- * - 菜单按钮区：「新的体检」与「模型管理」均为菜单按钮（artoo NavLink 风格，高亮当前项）。
- * - 体检历史：按仓库分组的历史列表（每个仓库一段独立历史），空态挪用 artoo。
+ * - 菜单按钮区：「新的评估」与「模型管理」均为菜单按钮（artoo NavLink 风格，高亮当前项）。
+ * - 评估历史：按仓库分组的历史列表（每个仓库一段独立历史），空态挪用 artoo。
  *
  * 收起/展开有宽度过渡动画（挪用 artoo：单一 aside + transition-[width]，展开层与
  * 收起层叠放并做透明度切换）。侧边栏 h-screen 固定，仅右侧主区滚动。
@@ -231,11 +231,11 @@ export function Sidebar({
           </button>
         </div>
 
-        {/* 菜单按钮：新的体检 + 模型管理 */}
+        {/* 菜单按钮：新的评估 + 模型管理 */}
         <div className="space-y-1 px-3 pb-2 pt-1">
           <MenuButton
             icon={SquarePen}
-            label="新的体检"
+            label="新的评估"
             active={newReviewActive}
             onClick={onNewReview}
           />
@@ -247,9 +247,9 @@ export function Sidebar({
           />
         </div>
 
-        {/* 体检历史 */}
+        {/* 评估历史 */}
         <p className="px-4 pb-1 pt-2 text-xs font-medium text-sidebar-foreground/85">
-          体检历史
+          评估历史
         </p>
         <ScrollArea className="flex-1 px-2">
           <div className="flex flex-col gap-0.5 py-1">
@@ -260,8 +260,8 @@ export function Sidebar({
             ) : groups.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                 <History className="mb-2 size-6 opacity-20" />
-                <p className="text-xs">还没有体检记录</p>
-                <p className="text-xs">发起一次体检开始吧</p>
+                <p className="text-xs">还没有评估记录</p>
+                <p className="text-xs">发起一次评估开始吧</p>
               </div>
             ) : (
               groups.map((g) => (
@@ -300,7 +300,7 @@ export function Sidebar({
           <button
             type="button"
             onClick={onNewReview}
-            title="新的体检"
+            title="新的评估"
             className={cn(
               'flex size-8 items-center justify-center rounded-md transition-colors',
               newReviewActive

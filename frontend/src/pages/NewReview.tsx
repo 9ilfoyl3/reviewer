@@ -1,8 +1,8 @@
 /**
- * NewReview —— 发起新体检的落地页（空状态，挪用 artoo 的居中空态观感）。
+ * NewReview —— 发起新评估的落地页（空状态，挪用 artoo 的居中空态观感）。
  *
  * 仅负责「输入仓库地址 → 创建会话」这一步；创建成功后通过 onSessionCreated
- * 上抛给 App，由 App 切换到该会话的体检详情（ReviewDetail）进行流式展示。
+ * 上抛给 App，由 App 切换到该会话的评估详情（ReviewDetail）进行流式展示。
  * 保持数据流向清晰：本页不持有分析态，只承载输入与提交。
  */
 
@@ -13,7 +13,7 @@ import { GitBranch } from 'lucide-react'
 import { RepoUrlForm } from '@/components/RepoUrlForm'
 
 export interface NewReviewProps {
-  /** 会话创建成功：上抛 session_id 与仓库地址，由 App 进入体检详情。 */
+  /** 会话创建成功：上抛 session_id 与仓库地址，由 App 进入评估详情。 */
   onSessionCreated: (sessionId: string, repoUrl: string) => void
 }
 
@@ -30,10 +30,10 @@ export function NewReview({ onSessionCreated }: NewReviewProps) {
         </div>
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-semibold tracking-tight">
-            GitHub 仓库体检
+            GitHub 仓库评估
           </h1>
           <p className="text-sm text-muted-foreground">
-            输入一个公开 GitHub 仓库地址，多 Agent 协作分析并实时生成健康体检报告。
+            输入一个公开 GitHub 仓库地址，多 Agent 协作分析并实时生成健康评估报告。
           </p>
         </div>
 

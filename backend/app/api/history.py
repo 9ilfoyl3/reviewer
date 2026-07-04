@@ -1,9 +1,9 @@
-"""体检历史接口（PostgreSQL 持久化）。
+"""评估历史接口（PostgreSQL 持久化）。
 
-供前端侧边栏展示「每个仓库一段独立历史」，以及回看某次体检的完整报告。
+供前端侧边栏展示「每个仓库一段独立历史」，以及回看某次评估的完整报告。
 
-- ``GET    /api/history``        返回按仓库分组的历史（每组含多次体检记录）
-- ``GET    /api/history/{id}``   返回某次体检的详情（含完整 Health_Report）
+- ``GET    /api/history``        返回按仓库分组的历史（每组含多次评估记录）
+- ``GET    /api/history/{id}``   返回某次评估的详情（含完整 Health_Report）
 - ``DELETE /api/history/{id}``   删除某条历史记录
 """
 
@@ -24,7 +24,7 @@ router = APIRouter(prefix="/api/history", tags=["history"])
 
 
 class HistoryItem(BaseModel):
-    """单次体检的摘要（列表用）。"""
+    """单次评估的摘要（列表用）。"""
 
     id: str
     repo_url: str
@@ -47,7 +47,7 @@ class HistoryGroup(BaseModel):
 
 
 class HistoryDetail(HistoryItem):
-    """单次体检详情（含完整报告与多 Agent 协作过程）。"""
+    """单次评估详情（含完整报告与多 Agent 协作过程）。"""
 
     report: dict | None = None
     agents: list | None = None
@@ -71,7 +71,7 @@ def _repo() -> ReviewRepository:
     return ReviewRepository()
 
 
-@router.get("", response_model=list[HistoryGroup], summary="按仓库分组的体检历史")
+@router.get("", response_model=list[HistoryGroup], summary="按仓库分组的评估历史")
 async def list_history() -> list[HistoryGroup]:
     records = await _repo().list_records()
     # 按 (owner, repo) 聚合，保持「最近活跃仓库在前」的顺序（records 已按更新时间倒序）。
@@ -88,31 +88,31 @@ async def list_history() -> list[HistoryGroup]:
     return [groups[k] for k in order]
 
 
-@router.get("/{record_id}", response_model=HistoryDetail, summary="体检详情")
+@router.get("/{record_id}", response_model=HistoryDetail, summary="评估详情")
 async def get_history(record_id: str) -> HistoryDetail:
     record = await _repo().get(record_id)
     if record is None:
-        raise HTTPException(status_code=404, detail="体检记录不存在")
+        raise HTTPException(status_code=404, detail="评估记录不存在")
     report: dict | None = None
     if record.report_json:
         try:
             report = json.loads(record.report_json)
         except json.JSONDecodeError:
-            logger.warning("体检记录 %s 的 report_json 解析失败", record_id)
+            logger.warning("评估记录 %s 的 report_json 解析失败", record_id)
     agents: list | None = None
     if record.agents_json:
         try:
             agents = json.loads(record.agents_json)
         except json.JSONDecodeError:
-            logger.warning("体检记录 %s 的 agents_json 解析失败", record_id)
+            logger.warning("评估记录 %s 的 agents_json 解析失败", record_id)
     item = _to_item(record)
     return HistoryDetail(**item.model_dump(), report=report, agents=agents)
 
 
 @router.delete(
-    "/{record_id}", status_code=status.HTTP_204_NO_CONTENT, summary="删除体检记录"
+    "/{record_id}", status_code=status.HTTP_204_NO_CONTENT, summary="删除评估记录"
 )
 async def delete_history(record_id: str) -> None:
     ok = await _repo().delete(record_id)
     if not ok:
-        raise HTTPException(status_code=404, detail="体检记录不存在")
+        raise HTTPException(status_code=404, detail="评估记录不存在")

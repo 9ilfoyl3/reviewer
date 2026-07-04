@@ -7,14 +7,14 @@ Worker 进程的消费主循环：
     while running:
         tasks = XREADGROUP(reviewer:tasks)        # 阻塞式拉取新任务
         for task in tasks:
-            spawn 协程: async with semaphore:       # 限制单进程并发体检数
+            spawn 协程: async with semaphore:       # 限制单进程并发评估数
                 try: run_analysis(task); XACK
                 except: 仅置该 session failed + 发 error（失败隔离，需求 5.7）
 
 设计要点：
 
 - **并发控制**：``asyncio.Semaphore(REVIEW_MAX_CONCURRENT)`` 限制单 Worker 同时
-  执行的体检数，避免无限接单打爆下游 LLM/GitHub 连接与内存（design.md 并发控制）。
+  执行的评估数，避免无限接单打爆下游 LLM/GitHub 连接与内存（design.md 并发控制）。
 - **失败隔离**：每个任务在独立协程 + ``try/except`` 中运行，任一任务异常只影响
   该 session（置 failed + 发 error 事件），绝不波及同进程其它在途任务（需求 5.7）。
 - **至少一次语义**：仅在任务处理**完成后**（无论成功或已降级为 failed）才 ``XACK``，
@@ -82,13 +82,13 @@ class ReviewConsumer:
             session_store: 会话状态存储（失败隔离时兜底置 failed）。
             runner: 单任务执行编排器（GitHub 抓取 → 流水线）。
             consumer_name: 本 Worker 在消费组内的唯一消费者名。
-            max_concurrent: 单 Worker 最大并发体检数（信号量容量）。
+            max_concurrent: 单 Worker 最大并发评估数（信号量容量）。
         """
         self._queue = task_queue
         self._session_store = session_store
         self._runner = runner
         self._consumer_name = consumer_name
-        # 单进程最大并发体检数（need >=1）。
+        # 单进程最大并发评估数（need >=1）。
         self._max_concurrent = max(1, int(max_concurrent))
         self._sem = asyncio.Semaphore(self._max_concurrent)
         self._stopping = asyncio.Event()
@@ -169,7 +169,7 @@ class ReviewConsumer:
     async def _handle(self, task: ConsumedTask | ReclaimedTask) -> None:
         """处理单条任务：信号量限并发 + try/except 失败隔离（需求 5.7、7.7）。
 
-        - ``async with self._sem`` 限制单进程并发体检数。
+        - ``async with self._sem`` 限制单进程并发评估数。
         - 单任务异常只影响该 session：runner 内部已发 error + 置 failed；此处
           ``try/except`` 作为兜底，捕获 runner 未处理的意外异常，同样仅置该
           session failed，绝不向上传播影响其它在途任务。
@@ -180,7 +180,7 @@ class ReviewConsumer:
         session_id = str(payload.get("session_id", ""))
         async with self._sem:
             if self._stopping.is_set():
-                # 停止过程中不再启动新体检；不 XACK，留待孤儿回收重投。
+                # 停止过程中不再启动新评估；不 XACK，留待孤儿回收重投。
                 logger.info("停止中，跳过任务 %s（session=%s）", message_id, session_id)
                 return
             try:

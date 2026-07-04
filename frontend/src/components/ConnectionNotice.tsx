@@ -74,7 +74,7 @@ export function ConnectionNotice({
           </p>
           <p className="max-w-sm text-xs text-muted-foreground">
             {exhausted
-              ? '多次自动重连均未成功。你可以再试一次，或重新发起体检。'
+              ? '多次自动重连均未成功。你可以再试一次，或重新发起评估。'
               : '与服务器的实时连接暂时中断，正在自动尝试恢复，请稍候。'}
           </p>
         </div>
@@ -87,7 +87,7 @@ export function ConnectionNotice({
             </Button>
             <Button size="sm" onClick={onRestart} className="gap-1.5">
               <RotateCcw className="size-3.5" />
-              重新发起体检
+              重新发起评估
             </Button>
           </div>
         ) : null}

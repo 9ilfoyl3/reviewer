@@ -49,7 +49,7 @@ class ProductValueOpinion(BaseModel):
 
 
 class HealthReport(BaseModel):
-    """结构化健康体检报告（五部分，需求 6.1）。"""
+    """结构化健康评估报告（五部分，需求 6.1）。"""
 
     metadata_summary: MetadataSummary        # 部分 1
     code_auditor: CodeAuditorOpinion         # 部分 2

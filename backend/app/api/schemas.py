@@ -3,7 +3,7 @@
 对应设计文档 API 层。这些模型用于 ``POST /api/analysis`` 创建 Analysis_Session
 的请求体与响应体，以及 URL 校验失败时的错误响应体。
 
-- :class:`CreateAnalysisRequest` ：创建体检会话的请求体，携带用户提交的
+- :class:`CreateAnalysisRequest` ：创建评估会话的请求体，携带用户提交的
   Repository_URL（长度约束 1–2048 字符，需求 1.1）。
 - :class:`CreateAnalysisResponse`：创建成功的响应体，返回 ``session_id`` 与解析出
   的 ``owner`` / ``repo``。
@@ -30,7 +30,7 @@ class CreateAnalysisRequest(BaseModel):
         ...,
         min_length=1,
         max_length=MAX_URL_LENGTH,
-        description="待体检的公开 GitHub 仓库地址，长度 1–2048 字符。",
+        description="待评估的公开 GitHub 仓库地址，长度 1–2048 字符。",
     )
 
 
