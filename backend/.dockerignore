@@ -1,0 +1,8 @@
+# 构建镜像时排除本地开发产物与缓存，缩小构建上下文
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.hypothesis/
+tests/
+.env
