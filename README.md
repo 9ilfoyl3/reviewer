@@ -108,7 +108,7 @@ python -m app.worker_main
 cd frontend; npm install; npm run dev
 ```
 
-> 完整的分步说明、常见问题与 macOS 对照命令见 [开发态启动文档](./docs/开发态启动.md)。
+> 完整的分步说明、常见问题与 macOS 对照命令见 [开发态启动文档](./docs/quickstart.md)。
 
 > 下文「后端 / 前端本地运行步骤」是不使用 Makefile 时的等价手动命令，末尾「Docker 部署」一节说明 compose 细节。
 
