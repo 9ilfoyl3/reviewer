@@ -1,0 +1,5 @@
+# 构建镜像时排除本地依赖与产物，避免污染构建上下文（镜像内会重新 npm ci）
+node_modules/
+dist/
+.vite/
+coverage/

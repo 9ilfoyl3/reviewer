@@ -1,0 +1,98 @@
+# Reviewer 一体化编排：redis + api + worker + frontend。
+#
+# 进程分离（见 design.md「职责边界」）：
+#   - api    ：FastAPI，校验/入队/SSE 订阅转发，不执行抓取或推理
+#   - worker ：从 Redis Stream 消费任务，执行 GitHub 抓取 + 多 Agent 流水线，
+#              可通过 `docker compose up --scale worker=N` 水平扩展多副本
+#   - redis  ：任务队列(Stream) + 事件总线(Pub/Sub) + 会话状态(Hash)
+#   - frontend：nginx 托管静态产物并把 /api 反代到 api
+#
+# 三项必需 LLM 配置从项目根目录 .env 读取（缺失则 api/worker fail-fast 退出）。
+# 用法：cp .env.example .env && 填写 LLM_* 后 `docker compose up -d --build`
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      # 对宿主暴露，便于本地调试；生产可去掉
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: reviewer
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      # 容器内通过服务名访问 redis
+      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/reviewer
+      LLM_BASE_URL: ${LLM_BASE_URL}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_MODEL: ${LLM_MODEL}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      REVIEW_MAX_CONCURRENT: ${REVIEW_MAX_CONCURRENT:-4}
+      AGENT_MAX_ITERATIONS: ${AGENT_MAX_ITERATIONS:-8}
+    ports:
+      - "8100:8100"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8100"]
+
+  worker:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/reviewer
+      LLM_BASE_URL: ${LLM_BASE_URL}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_MODEL: ${LLM_MODEL}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      REVIEW_MAX_CONCURRENT: ${REVIEW_MAX_CONCURRENT:-4}
+      AGENT_MAX_ITERATIONS: ${AGENT_MAX_ITERATIONS:-8}
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    # Worker 不监听端口；同一 Consumer Group 下可 --scale worker=N 水平扩展
+    command: ["python", "-m", "app.worker_main"]
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    ports:
+      - "3100:80"
+    depends_on:
+      - api
+
+volumes:
+  redis-data:
+  postgres-data:

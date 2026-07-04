@@ -1,0 +1,21 @@
+# Reviewer 后端依赖清单
+# API 服务与 SSE 流式响应
+fastapi
+uvicorn
+# async HTTP 客户端（GitHub + LLM 调用）
+httpx
+# 任务队列（Stream）+ 事件总线（Pub/Sub）+ 会话状态（Hash）
+redis
+# 体检历史 + 模型配置持久化（PostgreSQL，异步）
+sqlalchemy[asyncio]
+asyncpg
+# 数据模型、序列化/解析
+pydantic
+# 配置与启动期 fail-fast 校验
+pydantic-settings
+# 单元/集成测试
+pytest
+# 基于属性的测试
+hypothesis
+# 异步测试支持
+pytest-asyncio
