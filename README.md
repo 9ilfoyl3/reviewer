@@ -72,6 +72,44 @@ make up-build         # 构建镜像并后台启动全部服务
 
 测试：`make test`（前后端全部）、`make test-backend`、`make test-frontend`。
 
+## 快速上手（Windows）
+
+Windows 默认没有 `make`，推荐两种方式，任选其一。
+
+**A. 一体化部署（最简单，Docker Desktop）**
+
+安装 [Docker Desktop](https://www.docker.com/products/docker-desktop/) 后，在 PowerShell 中于 `reviewer\` 目录执行：
+
+```powershell
+Copy-Item .env.example .env          # 填写 LLM_BASE_URL / LLM_API_KEY / LLM_MODEL
+docker compose up -d --build         # 构建镜像并后台启动 redis + postgres + api + worker + frontend
+# 访问 http://localhost:3100
+```
+
+**B. 本地开发（基础设施用 Docker，前后端跑在宿主机热重载）**
+
+```powershell
+# 基础设施：Redis + PostgreSQL
+docker compose -f docker-compose.dev.yml up -d
+
+# 后端依赖与配置
+cd backend
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+Copy-Item .env.example .env          # 填写 LLM_* 三项
+
+# 三个终端分别启动 API / Worker / 前端
+# 终端 1（后端目录，已激活 .venv）：
+.venv\Scripts\uvicorn app.main:app --host 0.0.0.0 --port 8100 --reload
+# 终端 2（后端目录，已激活 .venv）：
+python -m app.worker_main
+# 终端 3（前端目录）：
+cd frontend; npm install; npm run dev
+```
+
+> 完整的分步说明、常见问题与 macOS 对照命令见 [开发态启动文档](./docs/开发态启动.md)。
+
 > 下文「后端 / 前端本地运行步骤」是不使用 Makefile 时的等价手动命令，末尾「Docker 部署」一节说明 compose 细节。
 
 ## 后端本地运行步骤
