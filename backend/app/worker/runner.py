@@ -1,7 +1,7 @@
 """单任务执行编排：GitHub 抓取 → Agent_Pipeline → 会话状态流转（任务 8.4）。
 
 对应设计文档「后端并发与队列设计」与「Worker 执行层」职责：Worker 从队列取到
-一条体检任务后，由 :class:`AnalysisRunner` 完成**单个** Analysis_Session 的端到端
+一条评估任务后，由 :class:`AnalysisRunner` 完成**单个** Analysis_Session 的端到端
 执行：
 
     会话置 running --> GitHub 抓取归一化 Snapshot --> Agent_Pipeline 流水线
@@ -11,7 +11,7 @@
   - GitHub 抓取失败（仓库不存在 / 速率限制 / 超时）→ 发 error 事件、会话置 failed，
     且不生成 Snapshot、不进入流水线（需求 2.4、2.5、2.10）。
   - LLM 重试耗尽或流水线未捕获异常 → 发 error 事件、会话置 failed（需求 5.7、7.7）。
-  - 无论成功或失败，最终都释放 ``(owner, repo)`` 去重键，允许后续重新体检。
+  - 无论成功或失败，最终都释放 ``(owner, repo)`` 去重键，允许后续重新评估。
 
 并发与连接：GitHub 抓取复用注入的、**有界连接池**的 ``httpx.AsyncClient``
 （``httpx.Limits(max_connections=...)``），避免多任务并发时打爆下游连接；LLM
@@ -79,7 +79,7 @@ def _serialize_trace(tracer: "_TracingEventBus | None") -> str | None:
 
 
 class AnalysisRunner:
-    """单个体检任务的执行编排器（需求 5.7、7.7）。
+    """单个评估任务的执行编排器（需求 5.7、7.7）。
 
     由 Worker 进程构造一次、供其内所有并发任务复用（无状态、线程/协程安全）：
     共享注入的 ``SessionStore`` / ``ReviewEventBus`` / ``LLMProvider`` /
@@ -119,13 +119,13 @@ class AnalysisRunner:
         self._settings = settings
         self._http_client = http_client
         self._task_queue = task_queue
-        # 体检历史落库（None 时跳过，便于测试）。
+        # 评估历史落库（None 时跳过，便于测试）。
         self._review_repo = review_repo
         # 模型配置仓储：优先用前端配置的默认模型，缺省回退注入的 env LLM（None 时跳过）。
         self._model_config_repo = model_config_repo
 
     async def run(self, payload: dict) -> None:
-        """执行单个体检任务的端到端编排（需求 5.7、7.7）。
+        """执行单个评估任务的端到端编排（需求 5.7、7.7）。
 
         Args:
             payload: 队列任务载荷，含 ``session_id`` / ``owner`` / ``repo`` /
@@ -147,7 +147,7 @@ class AnalysisRunner:
             # 1) 会话置 running（queued -> running）。
             await self._session_store.mark_running(session_id)
             await self._history_running(session_id)
-            logger.info("开始执行体检任务：会话 %s 仓库 %s/%s", session_id, owner, repo)
+            logger.info("开始执行评估任务：会话 %s 仓库 %s/%s", session_id, owner, repo)
 
             # 2) GitHub 抓取并归一化为 Repository_Snapshot（复用有界连接池）。
             try:
@@ -191,7 +191,7 @@ class AnalysisRunner:
             await self._history_completed(
                 session_id, report, agents_json=_serialize_trace(tracer)
             )
-            logger.info("体检任务完成：会话 %s 仓库 %s/%s", session_id, owner, repo)
+            logger.info("评估任务完成：会话 %s 仓库 %s/%s", session_id, owner, repo)
         finally:
             # 若本任务临时构造了 LLM（前端默认模型），用完即释放其连接。
             if llm_owned:
@@ -199,7 +199,7 @@ class AnalysisRunner:
                     await llm.close()
                 except Exception:  # noqa: BLE001
                     logger.debug("释放临时 LLM 连接失败", exc_info=True)
-            # 无论成功失败均释放去重键，允许后续对同仓库重新体检。
+            # 无论成功失败均释放去重键，允许后续对同仓库重新评估。
             await self._release_dedup(owner, repo)
 
     async def _fail(
@@ -221,7 +221,7 @@ class AnalysisRunner:
         """
         message = str(error) or error.__class__.__name__
         logger.warning(
-            "体检任务失败：会话 %s 阶段 %s 原因 %s", session_id, stage, message
+            "评估任务失败：会话 %s 阶段 %s 原因 %s", session_id, stage, message
         )
         # 先发 error 事件（需求 5.7），再置会话 failed，保证前端收到失败原因。
         await self._emit_error(session_id, seq, message=message, stage=stage)
@@ -233,7 +233,7 @@ class AnalysisRunner:
             session_id, message, agents_json=_serialize_trace(tracer)
         )
 
-    # ---- 体检历史落库（失败不阻断主流程） ----
+    # ---- 评估历史落库（失败不阻断主流程） ----
 
     async def _history_running(self, session_id: str) -> None:
         if self._review_repo is None:
@@ -241,7 +241,7 @@ class AnalysisRunner:
         try:
             await self._review_repo.mark_running(session_id)
         except Exception:  # noqa: BLE001
-            logger.debug("更新体检历史 running 失败：%s", session_id, exc_info=True)
+            logger.debug("更新评估历史 running 失败：%s", session_id, exc_info=True)
 
     async def _history_completed(
         self, session_id: str, report, *, agents_json: str | None = None
@@ -256,7 +256,7 @@ class AnalysisRunner:
                 agents_json=agents_json,
             )
         except Exception:  # noqa: BLE001
-            logger.debug("更新体检历史 completed 失败：%s", session_id, exc_info=True)
+            logger.debug("更新评估历史 completed 失败：%s", session_id, exc_info=True)
 
     async def _history_failed(
         self, session_id: str, message: str, *, agents_json: str | None = None
@@ -268,7 +268,7 @@ class AnalysisRunner:
                 session_id, message, agents_json=agents_json
             )
         except Exception:  # noqa: BLE001
-            logger.debug("更新体检历史 failed 失败：%s", session_id, exc_info=True)
+            logger.debug("更新评估历史 failed 失败：%s", session_id, exc_info=True)
 
     async def _resolve_llm(self) -> tuple[LLMProvider, bool]:
         """解析本次任务使用的 LLM。

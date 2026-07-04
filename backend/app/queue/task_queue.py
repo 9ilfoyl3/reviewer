@@ -12,7 +12,7 @@
     支持崩溃恢复；未 `XACK` 的孤儿消息由 `XAUTOCLAIM` 回收重投。
   - **入队幂等/去重**：以 `(owner, repo)` 归一化哈希为去重键（Redis String
     `reviewer:dedup:{hash}` → session_id），若同一仓库已有处于 `queued`/`running`
-    的活跃会话则复用其 session_id，避免重复体检（需求 1.6 后端去重保险）。
+    的活跃会话则复用其 session_id，避免重复评估（需求 1.6 后端去重保险）。
 
 本模块只负责队列语义与去重，不负责会话状态存储（见 session_store.py，任务 5.2）
 与实际抓取/流水线执行（见 worker/，任务 8.4）。
@@ -183,7 +183,7 @@ class TaskQueue:
     async def enqueue(
         self, session_id: str, owner: str, repo: str, repo_url: str
     ) -> EnqueueResult:
-        """入队一个体检任务，带 `(owner, repo)` 幂等去重。
+        """入队一个评估任务，带 `(owner, repo)` 幂等去重。
 
         流程：
           1. 计算去重键，用 `SET NX` 原子占位（值为本次 session_id）。
@@ -229,7 +229,7 @@ class TaskQueue:
         )
 
     async def release_dedup(self, owner: str, repo: str) -> None:
-        """释放某仓库的去重键（会话进入终态后调用，允许后续重新体检）。"""
+        """释放某仓库的去重键（会话进入终态后调用，允许后续重新评估）。"""
         await self._redis.delete(dedup_key(owner, repo))
 
     async def consume(

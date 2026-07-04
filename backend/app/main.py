@@ -4,7 +4,7 @@
 **只负责**：(1) 接收并校验 URL、解析 owner/repo；(2) 创建 Analysis_Session
 状态写入 Redis；(3) 把任务入队；(4) 为 SSE 连接订阅 Redis Pub/Sub 并转发事件。
 **不执行任何 GitHub 抓取或 Agent 推理**——那些跑在独立的 Worker 进程
-（见 ``app.worker_main``），因此单个体检不会阻塞 API。
+（见 ``app.worker_main``），因此单个评估不会阻塞 API。
 
 生命周期（lifespan）内初始化共享组件并存入 ``app.state``，供路由依赖注入：
   - ``task_queue``：Redis Stream 任务队列（入队 + 去重），启动时确保消费组存在。
@@ -49,7 +49,7 @@ async def lifespan(app: FastAPI):
     """
     settings = get_settings()  # 触发 fail-fast 校验（必需项缺失则抛 RuntimeError）
 
-    # 初始化 PostgreSQL 表结构（体检历史 + 模型配置持久化）。
+    # 初始化 PostgreSQL 表结构（评估历史 + 模型配置持久化）。
     await init_models()
 
     # 任务队列（入队 + 去重）并确保消费组存在，供 Worker 消费
@@ -74,7 +74,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Reviewer API",
-    description="多 Agent 协作的 GitHub 仓库体检工具（API 进程）",
+    description="多 Agent 协作的 GitHub 仓库评估工具（API 进程）",
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -90,7 +90,7 @@ app.add_middleware(
 
 # 注册 analysis 路由（POST /api/analysis 与 GET /api/analysis/{sid}/events）
 app.include_router(analysis_router)
-# 体检历史（侧边栏 / 回看）与模型配置（前端可配置模型）
+# 评估历史（侧边栏 / 回看）与模型配置（前端可配置模型）
 app.include_router(history_router)
 app.include_router(model_config_router)
 

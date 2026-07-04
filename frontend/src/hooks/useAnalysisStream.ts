@@ -106,7 +106,7 @@ export interface AnalysisStreamState {
   agents: Record<string, AgentView>
   /** Agent 首次出现顺序，用于稳定渲染。 */
   agentOrder: string[]
-  /** 最终健康体检报告，未生成前为 null。 */
+  /** 最终健康评估报告，未生成前为 null。 */
   report: HealthReport | null
   /** 中断/失败原因提示，无则为 null。 */
   error: string | null

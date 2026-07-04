@@ -194,7 +194,7 @@ export function Models() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">模型配置</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            配置体检使用的 LLM 模型。设为默认的模型将用于所有体检；未配置时回退到环境变量。
+            配置评估使用的 LLM 模型。设为默认的模型将用于所有评估；未配置时回退到环境变量。
           </p>
         </div>
         <Button onClick={openCreate} className="gap-2">
@@ -336,7 +336,7 @@ export function Models() {
                 checked={form.is_default}
                 onChange={(e) => setForm({ ...form, is_default: e.target.checked })}
               />
-              设为默认模型（用于所有体检）
+              设为默认模型（用于所有评估）
             </label>
 
             {dialogTestResult ? (

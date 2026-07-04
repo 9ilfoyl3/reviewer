@@ -28,7 +28,7 @@ describe('RepoUrlForm', () => {
     const onSessionCreated = vi.fn()
 
     render(<RepoUrlForm onSessionCreated={onSessionCreated} />)
-    await user.click(screen.getByRole('button', { name: '开始体检' }))
+    await user.click(screen.getByRole('button', { name: '开始评估' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('请输入 GitHub 仓库地址')
     expect(createSpy).not.toHaveBeenCalled()
@@ -41,7 +41,7 @@ describe('RepoUrlForm', () => {
 
     render(<RepoUrlForm onSessionCreated={vi.fn()} />)
     await user.type(screen.getByRole('textbox'), 'https://gitlab.com/foo/bar')
-    await user.click(screen.getByRole('button', { name: '开始体检' }))
+    await user.click(screen.getByRole('button', { name: '开始评估' }))
 
     expect(await screen.findByRole('alert')).toBeInTheDocument()
     expect(createSpy).not.toHaveBeenCalled()
@@ -56,7 +56,7 @@ describe('RepoUrlForm', () => {
 
     render(<RepoUrlForm onSessionCreated={onSessionCreated} />)
     await user.type(screen.getByRole('textbox'), VALID_URL)
-    await user.click(screen.getByRole('button', { name: '开始体检' }))
+    await user.click(screen.getByRole('button', { name: '开始评估' }))
 
     await waitFor(() => {
       expect(createSpy).toHaveBeenCalledWith(VALID_URL)
@@ -79,11 +79,11 @@ describe('RepoUrlForm', () => {
     render(<RepoUrlForm onSessionCreated={vi.fn()} />)
 
     await user.type(screen.getByRole('textbox'), VALID_URL)
-    await user.click(screen.getByRole('button', { name: '开始体检' }))
+    await user.click(screen.getByRole('button', { name: '开始评估' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('仓库地址格式非法')
     // 请求结束后重新启用（需求 1.7）
-    expect(screen.getByRole('button', { name: '开始体检' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '开始评估' })).toBeEnabled()
   })
 
   it('请求超时显示超时提示并重新启用（需求 1.7）', async () => {
@@ -94,9 +94,9 @@ describe('RepoUrlForm', () => {
     render(<RepoUrlForm onSessionCreated={vi.fn()} />)
 
     await user.type(screen.getByRole('textbox'), VALID_URL)
-    await user.click(screen.getByRole('button', { name: '开始体检' }))
+    await user.click(screen.getByRole('button', { name: '开始评估' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('请求超时')
-    expect(screen.getByRole('button', { name: '开始体检' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '开始评估' })).toBeEnabled()
   })
 })

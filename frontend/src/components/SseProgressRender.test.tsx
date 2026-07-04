@@ -408,6 +408,6 @@ describe('RepoUrlForm 提交禁用与 30s 超时（需求 1.6、1.7）', () => {
 
     // 显示超时提示并重新启用（需求 1.7）。
     expect(screen.getByRole('alert')).toHaveTextContent('请求超时')
-    expect(screen.getByRole('button', { name: '开始体检' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '开始评估' })).toBeEnabled()
   })
 })

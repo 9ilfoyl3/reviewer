@@ -115,7 +115,7 @@ npm install          # 首次运行需要
 npm run dev
 ```
 
-打开 http://localhost:3100 ，输入公开 GitHub 仓库 URL 即可开始体检。
+打开 http://localhost:3100 ，输入公开 GitHub 仓库 URL 即可开始评估。
 
 ### 6. 测试（可选）
 
@@ -164,7 +164,7 @@ API 进程端口通过 `uvicorn ... --port <端口>` 指定。
 
 - **后端启动即退出并打印缺失变量**：`LLM_BASE_URL / LLM_API_KEY / LLM_MODEL` 三项必须填写，
   这是 fail-fast 行为，补齐 `backend/.env` 后重启即可。
-- **前端能打开但体检无响应 / SSE 无数据**：确认 API（:8100）与 **至少一个 Worker** 都在运行，
+- **前端能打开但评估无响应 / SSE 无数据**：确认 API（:8100）与 **至少一个 Worker** 都在运行，
   且基础设施 Redis 可连通。
 - **GitHub 抓取偶发限流**：匿名访问额度较低，配置 `GITHUB_TOKEN` 可显著提升速率上限。
 - **Windows 下 `docker compose` 无法连接**：确认 Docker Desktop 已启动，并已启用 WSL2 集成。

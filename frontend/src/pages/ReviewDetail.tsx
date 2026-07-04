@@ -1,9 +1,9 @@
 /**
- * ReviewDetail —— 单次体检详情（统一「流式过程 + 报告」，对话式体验）。
+ * ReviewDetail —— 单次评估详情（统一「流式过程 + 报告」，对话式体验）。
  *
- * 这是「新体检发起后直接进入的详情页」，也是「点击历史记录回看的详情页」：
+ * 这是「新评估发起后直接进入的详情页」，也是「点击历史记录回看的详情页」：
  * - 进行中 / 刚发起（live）：订阅 SSE，实时流式展示各 Agent 的思考与工具调用，
- *   分析完成后在同一页内直接渲染健康体检报告（就和流式对话的体验一致）。
+ *   分析完成后在同一页内直接渲染健康评估报告（就和流式对话的体验一致）。
  * - 已完成 / 失败的历史记录：直接从历史详情读取并渲染报告 / 失败原因。
  *
  * 数据流向清晰：会话/记录 id 为单一入口，是否流式由「live 或记录状态」推导；
@@ -37,7 +37,7 @@ export interface ReviewDetailProps {
   live: boolean
   /** 仓库地址提示（详情尚未加载时用于头部展示）。 */
   repoUrlHint?: string
-  /** 返回「新的体检」落地页。 */
+  /** 返回「新的评估」落地页。 */
   onBack: () => void
   /** 会话状态变化时刷新侧边栏历史。 */
   onHistoryChange?: () => void
@@ -211,7 +211,7 @@ export function ReviewDetail({
   const repoTitle = useMemo(() => {
     if (detail) return `${detail.owner}/${detail.repo}`
     if (repoUrlHint) return repoUrlHint.replace(/^https?:\/\/github\.com\//i, '')
-    return '体检详情'
+    return '评估详情'
   }, [detail, repoUrlHint])
 
   // 展示用的 Agent 过程：优先用实时归约的 agentList（流式中/刚完成都保留），
@@ -273,14 +273,14 @@ export function ReviewDetail({
           <Card>
             <CardContent className="flex flex-col items-center gap-2 py-16 text-center text-sm text-muted-foreground">
               <TriangleAlert className="size-6 text-destructive" />
-              这次体检失败了：{errorMessage}
+              这次评估失败了：{errorMessage}
             </CardContent>
           </Card>
         ) : !streaming && !loadingDetail ? (
           <Card>
             <CardContent className="flex flex-col items-center gap-2 py-16 text-center text-sm text-muted-foreground">
               <TriangleAlert className="size-6 text-muted-foreground" />
-              这次体检尚未完成，暂无报告。
+              这次评估尚未完成，暂无报告。
             </CardContent>
           </Card>
         ) : loadingDetail && !streaming ? (

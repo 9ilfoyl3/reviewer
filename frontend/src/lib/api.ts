@@ -111,12 +111,12 @@ export function analysisEventsUrl(sessionId: string): string {
   return `${API_BASE}/api/analysis/${encodeURIComponent(sessionId)}/events`
 }
 
-// ============ 体检历史 ============
+// ============ 评估历史 ============
 
 import type { HealthReport } from '@/types/events'
 import type { AgentView } from '@/hooks/useAnalysisStream'
 
-/** 单次体检的历史摘要。 */
+/** 单次评估的历史摘要。 */
 export interface HistoryItem {
   id: string
   repo_url: string
@@ -137,7 +137,7 @@ export interface HistoryGroup {
   records: HistoryItem[]
 }
 
-/** 单次体检详情（含完整报告与多 Agent 协作过程）。 */
+/** 单次评估详情（含完整报告与多 Agent 协作过程）。 */
 export interface HistoryDetail extends HistoryItem {
   report?: HealthReport | null
   /** 聚合后的多 Agent 协作过程（供刷新/回看还原流式过程）。 */
@@ -168,17 +168,17 @@ async function requestJson<T>(
   return (await resp.json()) as T
 }
 
-/** 拉取按仓库分组的体检历史（侧边栏用）。 */
+/** 拉取按仓库分组的评估历史（侧边栏用）。 */
 export function fetchHistory(): Promise<HistoryGroup[]> {
   return requestJson<HistoryGroup[]>('/api/history')
 }
 
-/** 拉取某次体检的详情（含完整报告，回看用）。 */
+/** 拉取某次评估的详情（含完整报告，回看用）。 */
 export function fetchHistoryDetail(id: string): Promise<HistoryDetail> {
   return requestJson<HistoryDetail>(`/api/history/${encodeURIComponent(id)}`)
 }
 
-/** 删除某条体检历史。 */
+/** 删除某条评估历史。 */
 export function deleteHistory(id: string): Promise<void> {
   return requestJson<void>(`/api/history/${encodeURIComponent(id)}`, {
     method: 'DELETE',

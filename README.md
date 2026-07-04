@@ -1,6 +1,6 @@
-# Reviewer — 多 Agent 协作的 GitHub 仓库体检工具
+# Reviewer — 多 Agent 协作的 GitHub 仓库评估工具
 
-Reviewer 接收一个公开 GitHub 仓库 URL，抓取仓库元数据 / README / 代码结构，交由一条具备 ReAct（Think → Act → Observe + 工具调用）特征的多 Agent 流水线（Code_Auditor 代码审计、Product_Value_Agent 产品价值、Final_Judge 总分裁判）协作分析，最终产出一份 0–100 分的结构化健康体检报告，全过程通过 SSE 实时流式推送到前端。
+Reviewer 接收一个公开 GitHub 仓库 URL，抓取仓库元数据 / README / 代码结构，交由一条具备 ReAct（Think → Act → Observe + 工具调用）特征的多 Agent 流水线（Code_Auditor 代码审计、Product_Value_Agent 产品价值、Final_Judge 总分裁判）协作分析，最终产出一份 0–100 分的结构化健康评估报告，全过程通过 SSE 实时流式推送到前端。
 
 ## 架构与目录
 
@@ -19,21 +19,21 @@ reviewer/
 
 两者仅通过 **Redis**（任务队列 Stream + 事件总线 Pub/Sub + 会话状态 Hash）交互运行态数据，因此运行本系统需要一个可用的 Redis 实例。
 
-需长期留存的数据（**体检历史** `review_records` 与 **模型配置** `model_configs`）持久化到 **PostgreSQL**（SQLAlchemy async + asyncpg）。表结构在 API / Worker 进程启动时自动创建，无需手动迁移。运行态（Redis）与持久态（PostgreSQL）职责分离、数据流向清晰。
+需长期留存的数据（**评估历史** `review_records` 与 **模型配置** `model_configs`）持久化到 **PostgreSQL**（SQLAlchemy async + asyncpg）。表结构在 API / Worker 进程启动时自动创建，无需手动迁移。运行态（Redis）与持久态（PostgreSQL）职责分离、数据流向清晰。
 
 ## 前置依赖
 
 - Python 3.11+
 - Node.js 18+ 与 npm
 - Redis 6+（本地或远程均可，通过 `REDIS_URL` 指定）
-- PostgreSQL 14+（体检历史与模型配置持久化，通过 `DATABASE_URL` 指定）
+- PostgreSQL 14+（评估历史与模型配置持久化，通过 `DATABASE_URL` 指定）
 - 一个 OpenAI 兼容的 LLM 服务（提供 `/v1/chat/completions` 接口）
 - Docker + Docker Compose（用于一键起 Redis + PostgreSQL 或整套部署，可选）
 
 ## 功能一览
 
-- **仓库体检**：输入公开 GitHub 仓库地址，多 Agent 协作实时体检并生成健康报告。
-- **体检历史（侧边栏）**：每次体检持久化到 PostgreSQL，左侧边栏按仓库分组，
+- **仓库评估**：输入公开 GitHub 仓库地址，多 Agent 协作实时评估并生成健康报告。
+- **评估历史（侧边栏）**：每次评估持久化到 PostgreSQL，左侧边栏按仓库分组，
   「每个仓库一段独立历史」，可点开回看任意一次的完整报告，或删除记录。
 - **模型配置页**：前端可直接增删改 LLM 模型（简化版：名称 / Base URL / 模型 /
   API Key / 是否默认）并测试连通性。Worker 优先使用「默认」模型驱动推理，
@@ -191,7 +191,7 @@ cd frontend; npm install; npm run dev
    - `FRONTEND_PORT`：前端 dev server 监听端口（默认 3100）
    - `BACKEND_PROXY_TARGET`：`/api` 反代的后端地址（默认 `http://localhost:8100`）
 
-3. 打开浏览器访问 `http://localhost:3100`，输入公开 GitHub 仓库 URL 即可开始体检。
+3. 打开浏览器访问 `http://localhost:3100`，输入公开 GitHub 仓库 URL 即可开始评估。
 
 4. （可选）构建与运行前端测试：
 
@@ -211,8 +211,8 @@ cd frontend; npm install; npm run dev
 | `LLM_MODEL` | 是 | LLM_Provider 模型名称，例如 `gpt-4o-mini`，指定推理所用模型。缺失/为空则后端 fail-fast 拒绝启动。 |
 | `GITHUB_TOKEN` | 否 | GitHub 访问令牌。配置后请求携带该令牌以提升 GitHub API 速率限制额度；缺失时以匿名方式访问，额度较低，可能影响大仓库抓取（后端启动时会打印提示并继续）。 |
 | `REDIS_URL` | 否 | Redis 连接地址，用于任务队列（Stream）+ 事件总线（Pub/Sub）+ 会话状态（Hash）。默认 `redis://localhost:6379/0`。 |
-| `DATABASE_URL` | 否 | PostgreSQL 连接串（asyncpg 驱动），用于持久化体检历史与模型配置。默认 `postgresql+asyncpg://postgres:postgres@localhost:5432/reviewer`。 |
-| `REVIEW_MAX_CONCURRENT` | 否 | 单个 Worker 进程的最大并发体检数（信号量上限），避免打爆下游连接与内存。默认 `4`。 |
+| `DATABASE_URL` | 否 | PostgreSQL 连接串（asyncpg 驱动），用于持久化评估历史与模型配置。默认 `postgresql+asyncpg://postgres:postgres@localhost:5432/reviewer`。 |
+| `REVIEW_MAX_CONCURRENT` | 否 | 单个 Worker 进程的最大并发评估数（信号量上限），避免打爆下游连接与内存。默认 `4`。 |
 | `AGENT_MAX_ITERATIONS` | 否 | 单个 Agent 的 ReAct 循环最大轮数，合法范围 1–20，越界值会被钳制到边界。默认 `8`。 |
 
 ## 端口约定

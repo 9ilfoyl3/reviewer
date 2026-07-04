@@ -123,7 +123,7 @@ export function RepoUrlForm({
           className="flex-1"
         />
         <Button type="submit" disabled={disabled} className="sm:w-32">
-          {disabled ? '分析中…' : '开始体检'}
+          {disabled ? '分析中…' : '开始评估'}
         </Button>
       </div>
       {error ? (

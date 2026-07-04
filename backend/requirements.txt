@@ -6,7 +6,7 @@ uvicorn
 httpx
 # 任务队列（Stream）+ 事件总线（Pub/Sub）+ 会话状态（Hash）
 redis
-# 体检历史 + 模型配置持久化（PostgreSQL，异步）
+# 评估历史 + 模型配置持久化（PostgreSQL，异步）
 sqlalchemy[asyncio]
 asyncpg
 # 数据模型、序列化/解析

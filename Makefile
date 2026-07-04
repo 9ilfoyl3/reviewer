@@ -13,7 +13,7 @@ COMPOSE_DEV := docker-compose.dev.yml
 
 # 默认目标：打印帮助
 help:
-	@echo "Reviewer —— 多 Agent 仓库体检工具"
+	@echo "Reviewer —— 多 Agent 仓库评估工具"
 	@echo ""
 	@echo "安装依赖："
 	@echo "  make install            安装前后端依赖（后端建 .venv + pip，前端 npm）"

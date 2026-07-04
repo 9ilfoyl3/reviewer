@@ -1,6 +1,6 @@
-"""ORM 模型：体检历史记录与模型配置。
+"""ORM 模型：评估历史记录与模型配置。
 
-- ``ReviewRecord``：一次仓库体检的持久化记录。以 ``owner/repo`` 聚合，供前端
+- ``ReviewRecord``：一次仓库评估的持久化记录。以 ``owner/repo`` 聚合，供前端
   侧边栏按仓库分组展示历史；``report_json`` 保存完整 Health_Report，便于回看。
 - ``ModelConfig``：前端可配置的 LLM 模型（简化版，仅名称 / base_url / api_key /
   model / 是否默认）。Worker 优先取默认配置，缺省回退环境变量。
@@ -21,7 +21,7 @@ def _utcnow() -> datetime:
 
 
 class ReviewRecord(Base):
-    """一次仓库体检的历史记录。"""
+    """一次仓库评估的历史记录。"""
 
     __tablename__ = "review_records"
 

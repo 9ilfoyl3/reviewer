@@ -1,4 +1,4 @@
-"""体检历史记录仓储（ReviewRecord 的读写）。
+"""评估历史记录仓储（ReviewRecord 的读写）。
 
 供 API 进程（创建记录、列表/详情查询）与 Worker 进程（更新状态/报告/失败）共用。
 所有方法自持有会话生命周期（``async with session_factory()``），保持数据流向清晰。
@@ -41,7 +41,7 @@ class ReviewRepository:
                 )
             )
             await session.commit()
-        logger.debug("已创建体检历史记录 %s（%s/%s）", session_id, owner, repo)
+        logger.debug("已创建评估历史记录 %s（%s/%s）", session_id, owner, repo)
 
     async def mark_running(self, session_id: str) -> None:
         await self._update_status(session_id, "running")

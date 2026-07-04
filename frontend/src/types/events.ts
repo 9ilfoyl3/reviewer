@@ -63,7 +63,7 @@ export interface ProgressEvent {
   ts: number
 }
 
-// ============ 健康体检报告 ============
+// ============ 健康评估报告 ============
 
 export interface LanguagePercent {
   name: string

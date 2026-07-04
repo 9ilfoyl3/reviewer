@@ -1,10 +1,10 @@
-"""API 层 analysis 路由：创建体检会话与 SSE 事件流（任务 8.3）。
+"""API 层 analysis 路由：创建评估会话与 SSE 事件流（任务 8.3）。
 
 本模块实现 API 进程对外暴露的两个端点，对应设计文档「API 层」职责边界——
 **只负责建会话 + 入队 + SSE 订阅转发，不执行任何 GitHub 抓取或 Agent 推理**：
 
 - ``POST /api/analysis``：校验 Repository_URL 并解析 owner/repo（需求 1.4、1.5），
-  为本次体检创建 Analysis_Session 状态写入 Redis（queued），把任务入队到
+  为本次评估创建 Analysis_Session 状态写入 Redis（queued），把任务入队到
   Redis Stream，返回 ``session_id`` 供前端订阅事件流。以 ``(owner, repo)`` 去重，
   命中活跃会话时复用其 session_id（需求 1.6 后端去重保险）。
 - ``GET /api/analysis/{sid}/events``：为该会话建立一条 SSE 流（需求 5.1，2 秒内
@@ -73,14 +73,14 @@ def get_redis(request: Request) -> aioredis.Redis:
     response_model=CreateAnalysisResponse,
     status_code=status.HTTP_201_CREATED,
     responses={status.HTTP_400_BAD_REQUEST: {"model": ErrorResponse}},
-    summary="创建仓库体检会话",
+    summary="创建仓库评估会话",
 )
 async def create_analysis(
     payload: CreateAnalysisRequest,
     task_queue: TaskQueue = Depends(get_task_queue),
     session_store: SessionStore = Depends(get_session_store),
 ) -> CreateAnalysisResponse:
-    """创建一次仓库体检 Analysis_Session（需求 1.4、1.5、1.6）。
+    """创建一次仓库评估 Analysis_Session（需求 1.4、1.5、1.6）。
 
     流程：
       1. 校验 URL 并解析 owner/repo；解析失败返回 HTTP 400 且不创建会话（需求 1.5）。
@@ -90,7 +90,7 @@ async def create_analysis(
       4. 返回 session_id 与解析出的 owner/repo。
 
     Args:
-        payload: 请求体，携带待体检的 Repository_URL。
+        payload: 请求体，携带待评估的 Repository_URL。
         task_queue: 任务队列（入队 + 去重）。
         session_store: 会话状态存储。
 
@@ -119,7 +119,7 @@ async def create_analysis(
     # 3) 命中去重则复用已有活跃会话，不重复建会话；否则创建 queued 会话状态
     if result.deduplicated:
         logger.info(
-            "创建体检去重命中：仓库 %s/%s 复用活跃会话 %s",
+            "创建评估去重命中：仓库 %s/%s 复用活跃会话 %s",
             owner,
             repo,
             result.session_id,
@@ -131,7 +131,7 @@ async def create_analysis(
             owner=owner,
             repo=repo,
         )
-        # 持久化一条体检历史记录（queued）供侧边栏展示；失败不阻断主流程。
+        # 持久化一条评估历史记录（queued）供侧边栏展示；失败不阻断主流程。
         try:
             await ReviewRepository().create(
                 session_id=result.session_id,
@@ -139,10 +139,10 @@ async def create_analysis(
                 owner=owner,
                 repo=repo,
             )
-        except Exception:  # noqa: BLE001 - 历史落库失败不影响体检本身
-            logger.exception("创建体检历史记录失败：会话 %s", result.session_id)
+        except Exception:  # noqa: BLE001 - 历史落库失败不影响评估本身
+            logger.exception("创建评估历史记录失败：会话 %s", result.session_id)
         logger.info(
-            "创建体检会话 %s：仓库 %s/%s 已入队",
+            "创建评估会话 %s：仓库 %s/%s 已入队",
             result.session_id,
             owner,
             repo,
@@ -158,7 +158,7 @@ async def create_analysis(
 
 @router.get(
     "/{sid}/events",
-    summary="订阅体检进度 SSE 事件流",
+    summary="订阅评估进度 SSE 事件流",
 )
 async def analysis_events(
     sid: str,

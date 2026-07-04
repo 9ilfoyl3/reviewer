@@ -2,10 +2,10 @@
 
 对应需求 5.7 与设计文档「后端并发与队列设计 → 并发控制」：
 
-- **失败隔离**：单个体检任务在 :class:`ReviewConsumer` 的独立协程 + ``try/except``
+- **失败隔离**：单个评估任务在 :class:`ReviewConsumer` 的独立协程 + ``try/except``
   中运行，任一任务异常只把该 session 置 failed，绝不波及同进程其它在途任务。
 - **并发信号量**：``asyncio.Semaphore(REVIEW_MAX_CONCURRENT)`` 限制单 Worker
-  同时执行的体检数，在途任务数恒不超过配置上限。
+  同时执行的评估数，在途任务数恒不超过配置上限。
 - **error 事件发射**：:class:`AnalysisRunner` 在 GitHub 抓取失败与流水线异常时
   发射一条 error 类型 Progress_Event 并将会话置 failed（需求 5.7、7.7、2.4/2.5/2.10）。
 

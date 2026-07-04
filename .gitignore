@@ -35,3 +35,4 @@ uploads/
 data/
 *.sqlite
 *.db
+docs/reviewer/.config.kiro

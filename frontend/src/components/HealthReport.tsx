@@ -1,5 +1,5 @@
 /**
- * HealthReport —— 健康体检报告卡片（需求 6.4、6.5、6.6）。
+ * HealthReport —— 健康评估报告卡片（需求 6.4、6.5、6.6）。
  *
  * 渲染 Health_Report 的五个部分：
  *   1. 元数据摘要（Star/Fork 整数 + 语言分布占比列表）
@@ -39,7 +39,7 @@ import type {
  * 部分内容），因此各字段以可选 / 宽松类型接收，缺失时渲染占位（需求 6.5）。
  */
 export interface HealthReportProps {
-  /** 健康体检报告数据；各部分可能缺失。 */
+  /** 健康评估报告数据；各部分可能缺失。 */
   report: Partial<HealthReportData> | null | undefined
   /** 附加类名。 */
   className?: string
@@ -329,7 +329,7 @@ function RevealSection({
 // ============ 主组件 ============
 
 /**
- * 健康体检报告卡片：渲染五个部分，缺失部分显示占位并保留已收到部分。
+ * 健康评估报告卡片：渲染五个部分，缺失部分显示占位并保留已收到部分。
  */
 export function HealthReport({ report, className }: HealthReportProps) {
   return (
@@ -345,7 +345,7 @@ export function HealthReport({ report, className }: HealthReportProps) {
         )}
       >
         <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 py-4">
-          <CardTitle className="text-lg">健康体检报告</CardTitle>
+          <CardTitle className="text-lg">健康评估报告</CardTitle>
           <ScoreRing score={report?.score} />
         </CardHeader>
         <CardContent className="flex flex-col gap-8">
